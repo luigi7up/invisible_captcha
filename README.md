@@ -1,3 +1,4 @@
+
 # Invisible Captcha
 
 [![Gem](https://img.shields.io/gem/v/invisible_captcha.svg?style=flat-square)](https://rubygems.org/gems/invisible_captcha)
@@ -94,6 +95,33 @@ invisible_captcha only: [:new_contact]
 ```
 
 You can place `<%= flash[:error] %>` next to `:alert` and `:notice` message types, if you have them in your `app/views/layouts/application.html.erb`.
+### Using it with Devise (Rails)
+If you're trying to add the _invisible captcha_ into a project using the  most famous authentication gem [Devise](https://github.com/plataformatec/devise) this is what you need to do:
+
+1) First of all you'll have to copy the Devise's [RegistrationsController](https://github.com/plataformatec/devise/blob/master/app/controllers/devise/registrations_controller.rb) and add it to your project as 
+`/app/controllers/users/registrations_controller.rb`
+
+2) Add this line to the newly create file:
+
+```ruby
+class RegistrationsController < Devise::RegistrationsController
+
+  invisible_captcha only: [:create], scope: :user, honeypot: :my_antibot_field
+
+  # You don't need to copy the implementation of any of the methods you find in the original file
+
+end
+```
+Notice that we added the `scope` attribute `:user`. This is because in Devise all form parameters are sent and received by the controller as `params[:user][whatever_attribute]`. Since Invisible captcha reads the original `params` object it need to know that the attribute is sent within the scope `user`.
+
+3) In your Devise registration form which you will have to copy as `app/views/devise/resistrations/new.html` you simply add:
+
+```ruby
+= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f|
+      = devise_error_messages!
+      = f.invisible_captcha :my_antibot_field
+      # the rest of the form code
+```
 
 ## Options and customization
 
